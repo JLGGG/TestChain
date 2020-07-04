@@ -1,9 +1,8 @@
 package TestChain
 
 import (
-	"encoding/hex"
-	"time"
 	"crypto/sha256"
+	"time"
 )
 type Transaction = string // need to edit this variable.
 type HeightOfBlockchain = uint64
@@ -16,6 +15,7 @@ type Block struct {
 	Height HeightOfBlockchain // Blockchain' size
 	TransactionList []Transaction // When calculating merkle root use this variable.
 	State StateOfBlock
+	counterOfTransaction int
 }
 
 type BlockHeader struct {
@@ -72,16 +72,35 @@ func byteSliceToUint64(n []byte) uint64 {
 	return temp
 }*/
 
-func (block *Block) CalculateMerkleRoot() {
+func (block *Block) CalculateBlockHash() {
 	h := sha256.New()
 	var input []byte
 
 	input = append(input, []byte(block.Header.Creator)... )
 	input = append(input, []byte(block.Header.version)...)
 	input = append(input, []byte(block.Header.Timestamp.String())...)
+	input = append(input, []byte(block.Header.MerkleRoot)...)
 	input = append(input, block.Header.PreviousHash...)
 	h.Write(input)
-	block.Header.MerkleRoot = hex.EncodeToString(h.Sum(nil))
+	block.Hash = h.Sum(nil)
+}
+
+func (block *Block) CalculateMerkleRoot() {
+	h := sha256.New()
+	var input []byte
+	var tempHash []byte
+	var temp [][]byte
+
+	for i, j:=0, 0; i<block.counterOfTransaction; i=+2 {
+		input = append(input, []byte(block.TransactionList[i])...)
+		if i+1 == block.counterOfTransaction{
+			h.Write(input)
+			//need to save to 2-dimention array.
+		}
+		input = append(input, []byte(block.TransactionList[i+1])...)
+		h.Write(input)
+		tempHash = h.Sum(nil)
+	}
 }
 
 func (block *Block) GetHash() []byte {
