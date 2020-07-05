@@ -115,5 +115,31 @@ func (block *Block) GetHeight() uint64 {
 	return block.Height
 }
 
+func (block *Block) GetIndex() int{
+	return block.Index
+}
 
+func (block *Block) GetState() StateOfBlock {
+	return block.State
+}
+
+func (block *Block) GetCountOfTransaction() int {
+	return block.counterOfTransaction
+}
+
+func (block *Block) GetVersion() string {
+	return block.Header.version
+}
+
+func (block *Block) GetCreator() string {
+	return block.Header.Creator
+}
+
+func (block *Block) GetTimestamp() string {
+	return block.Header.Timestamp.String()
+}
+
+func (block *Block) GetMerkleRoot() string {
+	return block.Header.MerkleRoot
+}
 
