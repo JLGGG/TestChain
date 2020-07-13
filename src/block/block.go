@@ -1,42 +1,45 @@
-package TestChain
+package block
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"time"
 )
+
 type Transaction = string // need to edit this variable.
 type HeightOfBlockchain = uint64
 type StateOfBlock = string
+const SHA256_LENGTH = 32 // 32 * 8bits = 256bits
 
 type Block struct {
-	Index int // Current position in blockchain
-	Header BlockHeader
-	Hash []byte // Current block hash value
-	Height HeightOfBlockchain // Blockchain' size
-	TransactionList []Transaction // When calculating merkle root use this variable.
-	State StateOfBlock
+	Index                int // Current position in blockchain
+	Header               BlockHeader
+	Hash                 []byte             // Current block hash value
+	Height               HeightOfBlockchain // Blockchain' size
+	TransactionList      []Transaction      // When calculating merkle root use this variable.
+	State                StateOfBlock
 	counterOfTransaction int
 }
 
 type BlockHeader struct {
-	version string
-	Creator string
-	Timestamp time.Time
-	MerkleRoot string
+	version      string
+	Creator      string
+	Timestamp    time.Time
+	MerkleRoot   string
 	PreviousHash []byte
 }
 
 const (
-	Generated StateOfBlock = "Generated"
+	Generated  StateOfBlock = "Generated"
 	StageState StateOfBlock = "StageState"
-	Published StateOfBlock = "Published"
+	Published  StateOfBlock = "Published"
 )
 
 func (block *Block) SetHash(hash []byte) {
 	block.Hash = hash
 }
 
-func (block *Block) SetPreviousHash(previousHash []byte){
+func (block *Block) SetPreviousHash(previousHash []byte) {
 	block.Header.PreviousHash = previousHash
 }
 
@@ -45,11 +48,11 @@ func (block *Block) SetHeight(height uint64) {
 }
 
 func (block *Block) SaveTransaction(transaction Transaction) {
-	i:=0
-	block.TransactionList[i] = transaction
+	block.TransactionList= append(block.TransactionList, transaction)
+	block.counterOfTransaction++
 }
 
-func (block *Block) SetCreator(creator string){
+func (block *Block) SetCreator(creator string) {
 	block.Header.Creator = creator
 }
 
@@ -64,6 +67,7 @@ func (block *Block) SetTimestamp() {
 func (block *Block) SetState(state StateOfBlock) {
 	block.State = state
 }
+
 /*
 //Convert set of byte to qword(uint64).
 func byteSliceToUint64(n []byte) uint64 {
@@ -76,7 +80,7 @@ func (block *Block) CalculateBlockHash() {
 	h := sha256.New()
 	var input []byte
 
-	input = append(input, []byte(block.Header.Creator)... )
+	input = append(input, []byte(block.Header.Creator)...)
 	input = append(input, []byte(block.Header.version)...)
 	input = append(input, []byte(block.Header.Timestamp.String())...)
 	input = append(input, []byte(block.Header.MerkleRoot)...)
@@ -88,19 +92,26 @@ func (block *Block) CalculateBlockHash() {
 func (block *Block) CalculateMerkleRoot() {
 	h := sha256.New()
 	var input []byte
-	var tempHash []byte
-	var temp [][]byte
+	tempHash := make([][]byte, block.counterOfTransaction)
+	for i := range tempHash {
+		tempHash[i] = make([]byte, SHA256_LENGTH)
+	}
 
-	for i, j:=0, 0; i<block.counterOfTransaction; i=+2 {
+	//Requires repeated statement modification to produce only one hash value.
+Loop:
+	for i, j := 0, 0; i < block.GetCountOfTransaction(); i = +2 {
 		input = append(input, []byte(block.TransactionList[i])...)
-		if i+1 == block.counterOfTransaction{
+		if i+1 == block.GetCountOfTransaction() {
 			h.Write(input)
-			//need to save to 2-dimention array.
+			tempHash[j] = h.Sum(nil)
+			break Loop
 		}
 		input = append(input, []byte(block.TransactionList[i+1])...)
 		h.Write(input)
-		tempHash = h.Sum(nil)
+		tempHash[j] = h.Sum(nil)
+		j += 1
 	}
+	fmt.Print(tempHash)
 }
 
 func (block *Block) GetHash() []byte {
@@ -115,7 +126,7 @@ func (block *Block) GetHeight() uint64 {
 	return block.Height
 }
 
-func (block *Block) GetIndex() int{
+func (block *Block) GetIndex() int {
 	return block.Index
 }
 
@@ -142,4 +153,3 @@ func (block *Block) GetTimestamp() string {
 func (block *Block) GetMerkleRoot() string {
 	return block.Header.MerkleRoot
 }
-
