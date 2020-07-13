@@ -9,6 +9,7 @@ import (
 type Transaction = string // need to edit this variable.
 type HeightOfBlockchain = uint64
 type StateOfBlock = string
+
 const SHA256_LENGTH = 32 // 32 * 8bits = 256bits
 
 type Block struct {
@@ -48,7 +49,7 @@ func (block *Block) SetHeight(height uint64) {
 }
 
 func (block *Block) SaveTransaction(transaction Transaction) {
-	block.TransactionList= append(block.TransactionList, transaction)
+	block.TransactionList = append(block.TransactionList, transaction)
 	block.counterOfTransaction++
 }
 
