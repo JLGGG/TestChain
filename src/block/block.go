@@ -2,7 +2,8 @@ package block
 
 import (
 	"crypto/sha256"
-	"fmt"
+	_ "fmt"
+	_ "math"
 	"time"
 )
 
@@ -93,26 +94,57 @@ func (block *Block) CalculateBlockHash() {
 func (block *Block) CalculateMerkleRoot() {
 	h := sha256.New()
 	var input []byte
+	var count, repeatNumber int
 	tempHash := make([][]byte, block.counterOfTransaction)
 	for i := range tempHash {
 		tempHash[i] = make([]byte, SHA256_LENGTH)
 	}
-
 	//Requires repeated statement modification to produce only one hash value.
-Loop:
+Loop1:
 	for i, j := 0, 0; i < block.GetCountOfTransaction(); i = +2 {
 		input = append(input, []byte(block.TransactionList[i])...)
 		if i+1 == block.GetCountOfTransaction() {
 			h.Write(input)
 			tempHash[j] = h.Sum(nil)
-			break Loop
+			j += 1
+			count = j
+			break Loop1
 		}
 		input = append(input, []byte(block.TransactionList[i+1])...)
 		h.Write(input)
 		tempHash[j] = h.Sum(nil)
 		j += 1
+		if i+2 == block.GetCountOfTransaction(){
+			count = j
+		}
 	}
-	fmt.Print(tempHash)
+
+	length := count
+	for {
+		if count <= 1 {
+			break
+		}
+		count = count / 2
+		repeatNumber++
+	}
+	//need to confirm below code.
+Loop2:
+	for j:=0; j<repeatNumber; j++{
+		for i, j:=0, 0; i<length; i =+2{
+			input = append(input, tempHash[i]...)
+			if i+1 == length {
+				h.Write(input)
+				tempHash[j] = h.Sum(nil)
+				break Loop2
+			}
+			input = append(input, tempHash[i+1]...)
+			h.Write(input)
+			tempHash[j] = h.Sum(nil)
+			j++
+		}
+		length /= 2
+	}
+	block.Header.MerkleRoot = string(tempHash[0])
 }
 
 func (block *Block) GetHash() []byte {
