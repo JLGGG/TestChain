@@ -90,7 +90,7 @@ func (block *Block) CalculateBlockHash() {
 	h.Write(input)
 	block.Hash = h.Sum(nil)
 }
-
+/*
 func (block *Block) CalculateMerkleRoot() {
 	h := sha256.New()
 	var input []byte
@@ -146,7 +146,7 @@ Loop2:
 	}
 	block.Header.MerkleRoot = string(tempHash[0])
 }
-
+*/
 func (block *Block) GetHash() []byte {
 	return block.Hash
 }
